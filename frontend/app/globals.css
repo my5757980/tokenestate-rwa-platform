@@ -1,0 +1,16 @@
+/* TokenEstate v1 */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 3 7 18;
+    --foreground: 255 255 255;
+  }
+}
+
+body {
+  background: rgb(3 7 18);
+  color: white;
+}

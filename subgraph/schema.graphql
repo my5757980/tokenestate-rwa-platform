@@ -1,0 +1,58 @@
+type Property @entity(immutable: false) {
+  id: ID!
+  owner: Bytes!
+  metadataCID: String!
+  totalSupply: BigInt!
+  pricePerToken: BigInt!
+  tokensSold: BigInt!
+  active: Boolean!
+  createdAt: BigInt!
+  holdings: [Holding!]! @derivedFrom(field: "property")
+  rentDistributions: [RentDistribution!]! @derivedFrom(field: "property")
+}
+
+type Holding @entity(immutable: false) {
+  id: ID!                       # propertyId-holderAddress
+  property: Property!
+  holder: Bytes!
+  balance: BigInt!
+  updatedAt: BigInt!
+}
+
+type RentDistribution @entity(immutable: true) {
+  id: ID!
+  property: Property!
+  depositor: Bytes!
+  amount: BigInt!
+  timestamp: BigInt!
+  txHash: Bytes!
+}
+
+type RentClaim @entity(immutable: true) {
+  id: ID!
+  property: Property!
+  claimant: Bytes!
+  amount: BigInt!
+  timestamp: BigInt!
+  txHash: Bytes!
+}
+
+type Listing @entity(immutable: false) {
+  id: ID!
+  listingId: BigInt!
+  seller: Bytes!
+  property: Property!
+  amount: BigInt!
+  pricePerToken: BigInt!
+  status: Int!                  # 0=Active 1=Sold 2=Cancelled
+  createdAt: BigInt!
+  txHash: Bytes!
+}
+
+type KYCBadge @entity(immutable: false) {
+  id: ID!                       # holderAddress
+  holder: Bytes!
+  tokenId: BigInt!
+  revoked: Boolean!
+  issuedAt: BigInt!
+}

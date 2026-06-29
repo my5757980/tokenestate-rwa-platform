@@ -1,0 +1,107 @@
+specVersion: 0.0.5
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: PropertyRegistry
+    network: sepolia
+    source:
+      address: "0x0f5DaC9088E951241257863405F3323303f55252"
+      abi: PropertyRegistry
+      startBlock: 11149780
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - Property
+        - Holding
+      abis:
+        - name: PropertyRegistry
+          file: ../artifacts/contracts/PropertyRegistry.sol/PropertyRegistry.json
+      eventHandlers:
+        - event: PropertyListed(indexed uint256,indexed address,string,uint256,uint256)
+          handler: handlePropertyListed
+        - event: TokensPurchased(indexed uint256,indexed address,uint256,uint256)
+          handler: handleTokensPurchased
+        - event: PropertyPaused(indexed uint256)
+          handler: handlePropertyPaused
+        - event: PropertyUnpaused(indexed uint256)
+          handler: handlePropertyUnpaused
+        - event: TransferSingle(indexed address,indexed address,indexed address,uint256,uint256)
+          handler: handleTransferSingle
+        - event: TransferBatch(indexed address,indexed address,indexed address,uint256[],uint256[])
+          handler: handleTransferBatch
+      file: ./src/property-registry.ts
+
+  - kind: ethereum
+    name: RentDistributor
+    network: sepolia
+    source:
+      address: "0x545cc769C6b279686537C4dE2fBBd65CEd7f9B6e"
+      abi: RentDistributor
+      startBlock: 11149780
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - RentDistribution
+        - RentClaim
+      abis:
+        - name: RentDistributor
+          file: ../artifacts/contracts/RentDistributor.sol/RentDistributor.json
+      eventHandlers:
+        - event: RentDeposited(indexed uint256,indexed address,uint256)
+          handler: handleRentDeposited
+        - event: RentClaimed(indexed uint256,indexed address,uint256)
+          handler: handleRentClaimed
+      file: ./src/rent-distributor.ts
+
+  - kind: ethereum
+    name: Marketplace
+    network: sepolia
+    source:
+      address: "0x18F6714F5976a00E60d6606757Be84b7f302Abc1"
+      abi: Marketplace
+      startBlock: 11149780
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - Listing
+      abis:
+        - name: Marketplace
+          file: ../artifacts/contracts/Marketplace.sol/Marketplace.json
+      eventHandlers:
+        - event: ListingCreated(indexed uint256,indexed address,indexed uint256,uint256,uint256)
+          handler: handleListingCreated
+        - event: ListingFulfilled(indexed uint256,indexed address,uint256)
+          handler: handleListingFulfilled
+        - event: ListingCancelled(indexed uint256,indexed address)
+          handler: handleListingCancelled
+      file: ./src/marketplace.ts
+
+  - kind: ethereum
+    name: KYCBadge
+    network: sepolia
+    source:
+      address: "0x0e09046C7A0b08Fd63Ae5Ecee778f498054Dd738"
+      abi: KYCBadge
+      startBlock: 11149780
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - KYCBadge
+      abis:
+        - name: KYCBadge
+          file: ../artifacts/contracts/KYCBadge.sol/KYCBadge.json
+      eventHandlers:
+        - event: BadgeIssued(indexed address,indexed uint256)
+          handler: handleBadgeIssued
+        - event: BadgeRevoked(indexed address,indexed uint256)
+          handler: handleBadgeRevoked
+      file: ./src/kyc-badge.ts
