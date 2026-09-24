@@ -1,7 +1,17 @@
 const { createServer } = require('http');
 const { Wallet } = require('ethers');
 
-const wallet = new Wallet('0x1b39dad55bf7344526eae16477523c2ded314a8c42d325a286b671a18eef9aa3');
+require('dotenv').config();
+
+// Demo-only signer for the recorded walkthrough. It signs any message for any page while it runs,
+// so give it a THROWAWAY testnet key via DEMO_SIGNER_PRIVATE_KEY. The key that used to be written
+// here is public (it was committed) and must never be used again.
+const key = process.env.DEMO_SIGNER_PRIVATE_KEY;
+if (!key) {
+  console.error('Set DEMO_SIGNER_PRIVATE_KEY (a throwaway testnet key) in .env first.');
+  process.exit(1);
+}
+const wallet = new Wallet(key);
 console.log('Wallet address:', wallet.address);
 
 const server = createServer(async (req, res) => {
