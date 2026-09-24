@@ -20,9 +20,9 @@ Fractional real estate ownership on Ethereum. Buy property tokens with USDC, ear
 
 | Contract | Description |
 |----------|-------------|
-| `PropertyRegistry` | ERC-1155 — list properties, mint fractional tokens, purchase |
-| `RentDistributor` | Pull accumulator rent distribution (O(1) per claim) |
-| `KYCBadge` | Soulbound ERC-721 — non-transferable KYC identity token |
+| `PropertyRegistry` | ERC-1155 — list properties, mint fractional tokens, purchase. Only a wallet with an active KYC badge can receive tokens |
+| `RentDistributor` | Pull accumulator rent distribution (O(1) per claim). The owner pays in only the sold tokens' share |
+| `KYCBadge` | Soulbound ERC-721 — non-transferable KYC identity token, checked on every token transfer |
 | `Marketplace` | Escrow-free secondary market — atomic USDC + token swap |
 | `MockUSDC` | Testnet USDC with public mint |
 
@@ -61,15 +61,28 @@ PINATA_API_KEY=
 PINATA_SECRET_KEY=
 ```
 
+## Rules the contracts enforce
+
+- **KYC:** `PropertyRegistry` checks `KYCBadge.isVerified` on every transfer, so a wallet without an
+  active badge cannot buy in the primary sale, buy on the Marketplace or be sent tokens (`NotKYCVerified`).
+  A revoked badge stops new purchases; a holder can still sell to a verified buyer.
+- **Rent:** rent is earned per token. Unsold tokens belong to the owner, so `depositRent(amount)` takes
+  `amount` as the rent for the whole property but collects only the share of the tokens investors hold
+  (`RentDeposited` reports that collected amount). Nothing is left stuck in the contract, and rent
+  cannot be deposited before a token is sold (`NoTokenHolders`).
+
 ## Test Results
 
 ```
-58 passing
-  MockUSDC         8 tests
-  PropertyRegistry 15 tests
-  RentDistributor  10 tests
-  KYCBadge         12 tests
-  Marketplace      13 tests
+71 passing
+  MockUSDC                      8 tests
+  PropertyRegistry             15 tests
+  RentDistributor              10 tests
+  RentDistributor (transfers)   3 tests
+  RentDistributor (unsold)      4 tests
+  KYCBadge                     12 tests
+  KYC enforcement               6 tests
+  Marketplace                  13 tests
 ```
 
 ## Project Structure

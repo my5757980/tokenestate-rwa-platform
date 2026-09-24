@@ -8,7 +8,9 @@ const U = (n: bigint) => n * 10n ** 6n; // USDC has 6 decimals
 async function setup(sold: { honest: bigint; b: bigint }) {
   const [owner, honest, b, a] = await ethers.getSigners();
   const usdc = await ethers.deployContract("MockUSDC");
-  const registry = await ethers.deployContract("PropertyRegistry", [await usdc.getAddress()]);
+  const kyc = await ethers.deployContract("KYCBadge");
+  const registry = await ethers.deployContract("PropertyRegistry", [await usdc.getAddress(), await kyc.getAddress()]);
+  for (const s of [honest, b, a]) await kyc.issueBadge(await s.getAddress());
   const rent = await ethers.deployContract("RentDistributor", [
     await usdc.getAddress(),
     await registry.getAddress(),

@@ -25,7 +25,10 @@ describe("RentDistributor", () => {
     inv2Addr = await investor2.getAddress();
 
     usdc = await ethers.deployContract("MockUSDC");
-    registry = await ethers.deployContract("PropertyRegistry", [await usdc.getAddress()]);
+    const kyc = await ethers.deployContract("KYCBadge");
+    registry = await ethers.deployContract("PropertyRegistry", [await usdc.getAddress(), await kyc.getAddress()]);
+    await kyc.issueBadge(inv1Addr);
+    await kyc.issueBadge(inv2Addr);
     rent = await ethers.deployContract("RentDistributor", [
       await usdc.getAddress(),
       await registry.getAddress(),
@@ -54,9 +57,10 @@ describe("RentDistributor", () => {
     it("should accept rent deposit from property owner", async () => {
       const propId = await listAndBuy(investor1, 100n);
       await usdc.connect(owner).approve(await rent.getAddress(), RENT);
+      // 100 of 1000 tokens are sold: the owner pays in only the holders' share of the rent
       await expect(rent.connect(owner).depositRent(propId, RENT))
         .to.emit(rent, "RentDeposited")
-        .withArgs(propId, ownerAddr, RENT);
+        .withArgs(propId, ownerAddr, (100n * RENT) / SUPPLY);
     });
 
     it("should update totalRentPerToken accumulator", async () => {

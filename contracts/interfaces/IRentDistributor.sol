@@ -25,12 +25,15 @@ interface IRentDistributor {
     error ZeroRentAmount();
     error NothingToClaim(address claimer, uint256 propertyId);
     error ZeroTokenSupply(uint256 propertyId);
+    error NoTokenHolders(uint256 propertyId);
 
     // ─── Functions ───────────────────────────────────────────────────────────
 
     /// @notice Property owner deposits USDC rent income
+    /// @dev Only the share earned by tokens investors hold is collected; unsold tokens are the
+    ///      owner's, so their share never leaves the owner. RentDeposited reports what was collected.
     /// @param propertyId Target property
-    /// @param amount USDC amount (6 decimals)
+    /// @param amount USDC rent for the whole property (6 decimals)
     function depositRent(uint256 propertyId, uint256 amount) external;
 
     /// @notice Token holder claims their accumulated rent

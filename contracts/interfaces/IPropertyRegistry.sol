@@ -47,6 +47,7 @@ interface IPropertyRegistry is IERC1155 {
     error InvalidTokenAmount();
     error InvalidPrice();
     error EmptyMetadataCID();
+    error NotKYCVerified(address account);
 
     // ─── Functions ───────────────────────────────────────────────────────────
 

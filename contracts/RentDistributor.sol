@@ -42,12 +42,22 @@ contract RentDistributor is IRentDistributor, Ownable, ReentrancyGuard {
         uint256 supply = prop.totalSupply;
         if (supply == 0) revert ZeroTokenSupply(propertyId);
 
-        usdc.safeTransferFrom(msg.sender, address(this), amount);
+        // Rent per token (1e18 scaling), earned by every token of the property
+        uint256 perToken = (amount * 1e18) / supply;
 
-        // Accumulate rent per token (1e18 scaling)
-        totalRentPerToken[propertyId] += (amount * 1e18) / supply;
+        // Unsold tokens sit in the registry and belong to the owner, so only the share of the tokens
+        // investors hold is collected; the rest would otherwise be stuck here, claimable by no one.
+        // Rounded up, so the holders' claims (rounded down) can never exceed what was collected.
+        uint256 held = supply - registry.balanceOf(address(registry), propertyId);
+        if (held == 0) revert NoTokenHolders(propertyId);
+        uint256 collected = (held * perToken + 1e18 - 1) / 1e18;
+        if (collected == 0) revert ZeroRentAmount();
 
-        emit RentDeposited(propertyId, msg.sender, amount);
+        usdc.safeTransferFrom(msg.sender, address(this), collected);
+
+        totalRentPerToken[propertyId] += perToken;
+
+        emit RentDeposited(propertyId, msg.sender, collected);
     }
 
     function claimRent(uint256 propertyId) external nonReentrant {

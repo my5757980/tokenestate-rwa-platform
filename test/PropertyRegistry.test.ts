@@ -21,8 +21,11 @@ describe("PropertyRegistry", function () {
     // Deploy RentDistributor with placeholder (will be updated)
     const RentDistributor = await ethers.getContractFactory("RentDistributor");
 
+    const kyc = await ethers.deployContract("KYCBadge");
+    await kyc.issueBadge(buyer.address);
+
     const Registry = await ethers.getContractFactory("PropertyRegistry");
-    registry = await Registry.deploy(await usdc.getAddress());
+    registry = await Registry.deploy(await usdc.getAddress(), await kyc.getAddress());
 
     rentDistributor = await RentDistributor.deploy(
       await usdc.getAddress(),

@@ -11,6 +11,7 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import "./interfaces/IPropertyRegistry.sol";
 import "./interfaces/IRentDistributor.sol";
+import "./interfaces/IKYCBadge.sol";
 
 /// @title PropertyRegistry — ERC-1155 fractional real estate tokenization
 /// @notice Each property gets a unique ERC-1155 tokenId. Fractional shares are fungible.
@@ -20,6 +21,7 @@ contract PropertyRegistry is IPropertyRegistry, ERC1155, ERC1155Pausable, ERC115
     // ─── State ───────────────────────────────────────────────────────────────
 
     IERC20 public immutable usdc;
+    IKYCBadge public immutable kycBadge;
     IRentDistributor public rentDistributor;
 
     uint256 private _propertyCounter;
@@ -27,8 +29,10 @@ contract PropertyRegistry is IPropertyRegistry, ERC1155, ERC1155Pausable, ERC115
 
     // ─── Constructor ─────────────────────────────────────────────────────────
 
-    constructor(address _usdc) ERC1155("") Ownable(msg.sender) {
+    constructor(address _usdc, address _kycBadge) ERC1155("") Ownable(msg.sender) {
+        require(_kycBadge != address(0), "PropertyRegistry: KYC badge required");
         usdc = IERC20(_usdc);
+        kycBadge = IKYCBadge(_kycBadge);
     }
 
     // ─── Admin ───────────────────────────────────────────────────────────────
@@ -112,6 +116,10 @@ contract PropertyRegistry is IPropertyRegistry, ERC1155, ERC1155Pausable, ERC115
         uint256[] memory ids,
         uint256[] memory values
     ) internal override(ERC1155, ERC1155Pausable) {
+        // Only a wallet with an active KYC badge may receive tokens: this covers the primary sale,
+        // the Marketplace and plain transfers alike. The registry itself holds the unsold supply.
+        if (to != address(0) && to != address(this) && !kycBadge.isVerified(to)) revert NotKYCVerified(to);
+
         // Settle rent BEFORE balances move, so each side is paid on the balance that earned it
         if (address(rentDistributor) != address(0)) {
             for (uint256 i = 0; i < ids.length; i++) {

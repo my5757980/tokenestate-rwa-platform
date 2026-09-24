@@ -25,7 +25,10 @@ describe("Marketplace", () => {
     buyerAddr = await buyer.getAddress();
 
     usdc = await ethers.deployContract("MockUSDC");
-    registry = await ethers.deployContract("PropertyRegistry", [await usdc.getAddress()]);
+    const kyc = await ethers.deployContract("KYCBadge");
+    registry = await ethers.deployContract("PropertyRegistry", [await usdc.getAddress(), await kyc.getAddress()]);
+    await kyc.issueBadge(sellerAddr);
+    await kyc.issueBadge(buyerAddr);
     market = await ethers.deployContract("Marketplace", [
       await registry.getAddress(),
       await usdc.getAddress(),

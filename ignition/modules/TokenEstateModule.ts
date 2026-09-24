@@ -7,8 +7,8 @@ export default buildModule("TokenEstateModule", (m) => {
   // 2. KYCBadge — no dependencies
   const kycBadge = m.contract("KYCBadge");
 
-  // 3. PropertyRegistry — needs USDC address
-  const propertyRegistry = m.contract("PropertyRegistry", [mockUSDC]);
+  // 3. PropertyRegistry — needs USDC + KYCBadge (only badge holders may receive tokens)
+  const propertyRegistry = m.contract("PropertyRegistry", [mockUSDC, kycBadge]);
 
   // 4. RentDistributor — needs USDC + PropertyRegistry
   const rentDistributor = m.contract("RentDistributor", [mockUSDC, propertyRegistry]);
