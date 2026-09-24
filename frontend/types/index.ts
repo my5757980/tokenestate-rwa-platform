@@ -35,10 +35,16 @@ export interface Holding {
   pricePerToken?: bigint;
 }
 
+// What a listing or rent claim carries about its property (the subgraph queries select just these)
+export interface PropertyRef {
+  id: string;
+  metadataCID: string;
+}
+
 export interface Listing {
   id: string;
   seller: string;
-  property: Property;
+  property: PropertyRef;
   amount: bigint;
   pricePerToken: bigint;
   status: "Active" | "Sold" | "Cancelled";
@@ -57,7 +63,7 @@ export interface RentDistribution {
 export interface RentClaim {
   id: string;
   claimer: string;
-  property: Property;
+  property: PropertyRef;
   amount: bigint;
   timestamp: bigint;
 }

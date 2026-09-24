@@ -1,31 +1,37 @@
 "use client";
 
 import { useState } from "react";
+import { parseUnits } from "viem";
 import { TxButton } from "@/components/ui/TxButton";
 import { useCreateListing } from "@/hooks/useMarketplace";
 import { MARKETPLACE_ADDRESS } from "@/lib/contracts";
+import { txErrorMessage } from "@/lib/txError";
 import { useEffect } from "react";
 
 export function CreateListingForm() {
   const [propertyId, setPropertyId] = useState("");
   const [amount, setAmount] = useState("");
   const [price, setPrice] = useState("");
-  const [approved, setApproved] = useState(false);
+  // Both steps share one write hook, so its isSuccess first means "approved", then "listed"
+  const [step, setStep] = useState<"approve" | "approving" | "create" | "creating" | "done">("approve");
+  const approved = step !== "approve" && step !== "approving";
 
   const { approveListing, createListing, isPending, isSuccess, error } = useCreateListing();
 
   useEffect(() => {
-    if (isSuccess && !approved) {
-      setApproved(true);
-    }
+    if (!isSuccess) return;
+    if (step === "approving") setStep("create");
+    if (step === "creating") setStep("done");
   }, [isSuccess]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!approved) {
+      setStep("approving");
       approveListing(MARKETPLACE_ADDRESS);
     } else {
-      createListing(BigInt(propertyId), BigInt(amount), BigInt(Math.floor(parseFloat(price) * 1e6)));
+      setStep("creating");
+      createListing(BigInt(propertyId), BigInt(amount), parseUnits(price, 6));
     }
   };
 
@@ -63,8 +69,8 @@ export function CreateListingForm() {
         />
       </div>
 
-      {error && <p className="text-red-400 text-sm">{error.message}</p>}
-      {isSuccess && approved && <p className="text-neon-green text-sm">Listing created!</p>}
+      {error && <p className="text-red-400 text-sm">{txErrorMessage(error)}</p>}
+      {step === "done" && <p className="text-neon-green text-sm">Listing created!</p>}
 
       <TxButton onClick={() => {}} status={isPending ? "pending" : "idle"} className="w-full">
         {!approved ? "Step 1: Approve Marketplace" : "Step 2: Create Listing"}

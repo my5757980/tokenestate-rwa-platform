@@ -25,10 +25,10 @@ export function useListProperty() {
 // ─── Purchase Tokens (2-step: approve USDC → purchaseTokens) ─────────────────
 
 export function usePurchaseTokens() {
-  const { writeContract: approveUSDC, data: approveHash, isPending: isApproving } = useWriteContract();
-  const { isSuccess: approveSuccess } = useWaitForTransactionReceipt({ hash: approveHash });
+  const { writeContract: approveUSDC, data: approveHash, isPending: isApproving, error: approveError } = useWriteContract();
+  const { isLoading: isApproveConfirming, isSuccess: approveSuccess } = useWaitForTransactionReceipt({ hash: approveHash });
 
-  const { writeContract: buyTokens, data: buyHash, isPending: isBuying, error } = useWriteContract();
+  const { writeContract: buyTokens, data: buyHash, isPending: isBuying, error: buyError } = useWriteContract();
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash: buyHash });
 
   const purchaseTokens = async (propertyId: bigint, amount: bigint, pricePerToken: bigint) => {
@@ -54,10 +54,10 @@ export function usePurchaseTokens() {
     purchaseTokens,
     executePurchase,
     approveSuccess,
-    isApproving,
+    isApproving: isApproving || isApproveConfirming,
     isBuying: isBuying || isConfirming,
     isSuccess,
-    error,
+    error: buyError ?? approveError,
   };
 }
 
@@ -90,7 +90,7 @@ export function useTotalProperties() {
 // ─── Read: Token Balance ──────────────────────────────────────────────────────
 
 export function useTokenBalance(address: `0x${string}` | undefined, propertyId: bigint | undefined) {
-  const { data } = useReadContract({
+  const { data, refetch } = useReadContract({
     address: PROPERTY_REGISTRY_ADDRESS,
     abi: PROPERTY_REGISTRY_ABI,
     functionName: "balanceOf",
@@ -98,7 +98,7 @@ export function useTokenBalance(address: `0x${string}` | undefined, propertyId: 
     query: { enabled: !!address && propertyId !== undefined },
   });
 
-  return { balance: data as bigint | undefined };
+  return { balance: data as bigint | undefined, refetch };
 }
 
 // ─── Pause / Unpause ──────────────────────────────────────────────────────────

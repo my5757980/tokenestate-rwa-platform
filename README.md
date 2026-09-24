@@ -56,10 +56,15 @@ NEXT_PUBLIC_KYC_BADGE_ADDRESS=
 NEXT_PUBLIC_USDC_ADDRESS=
 NEXT_PUBLIC_GRAPH_URL=    # The Graph subgraph URL
 NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=
+NEXT_PUBLIC_SEPOLIA_RPC_URL=  # optional: RPC the site reads through (else the rate-limited public one)
 
-PINATA_API_KEY=
+PINATA_API_KEY=           # server-side only: used by the /api/ipfs upload route
 PINATA_SECRET_KEY=
 ```
+
+The browser never sees the Pinata keys: listing a property uploads through `/api/ipfs`, which accepts
+PDF, JPEG or PNG documents up to 10 MB. The route is open to anyone who can reach the site, so put rate
+limiting in front of it before a public launch.
 
 ## Rules the contracts enforce
 

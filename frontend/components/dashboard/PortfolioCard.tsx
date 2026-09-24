@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { formatUnits } from "viem";
 import { usePendingRent, useClaimRent } from "@/hooks/useRentDistributor";
 import { TxButton } from "@/components/ui/TxButton";
@@ -11,8 +12,13 @@ interface PortfolioCardProps {
 }
 
 export function PortfolioCard({ holding, holderAddress }: PortfolioCardProps) {
-  const { pendingRent } = usePendingRent(holderAddress, BigInt(holding.propertyId));
+  const { pendingRent, refetch } = usePendingRent(holderAddress, BigInt(holding.propertyId));
   const { claimRent, isPending, isSuccess } = useClaimRent();
+
+  // Show the paid-out rent as gone right away instead of at the next 30 s poll
+  useEffect(() => {
+    if (isSuccess) refetch();
+  }, [isSuccess]);
 
   const rentUSD = pendingRent ? Number(formatUnits(pendingRent, 6)).toFixed(2) : "0.00";
   const valueUSD = Number(formatUnits(BigInt(holding.balance) * BigInt(holding.pricePerToken ?? 0), 6)).toFixed(2);
@@ -24,7 +30,7 @@ export function PortfolioCard({ holding, holderAddress }: PortfolioCardProps) {
           <h3 className="text-white font-semibold">{holding.propertyName ?? `Property #${holding.propertyId}`}</h3>
           <p className="text-gray-400 text-sm mt-0.5">{holding.location}</p>
         </div>
-        <span className="text-neon-green font-bold text-lg">{holding.balance} tokens</span>
+        <span className="text-neon-green font-bold text-lg">{holding.balance.toString()} tokens</span>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
@@ -38,7 +44,7 @@ export function PortfolioCard({ holding, holderAddress }: PortfolioCardProps) {
         </div>
       </div>
 
-      {pendingRent && pendingRent > 0n && (
+      {pendingRent !== undefined && pendingRent > 0n && (
         <TxButton
           onClick={() => claimRent(BigInt(holding.propertyId))}
           status={isPending ? "pending" : isSuccess ? "success" : "idle"}

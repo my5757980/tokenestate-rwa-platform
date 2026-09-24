@@ -27,10 +27,12 @@ export function useCreateListing() {
 }
 
 export function useBuyListing() {
-  const { writeContract: approveUSDC, data: approveHash } = useWriteContract();
-  const { isSuccess: approveSuccess } = useWaitForTransactionReceipt({ hash: approveHash });
-  const { writeContract: buy, data: buyHash, isPending, error } = useWriteContract();
-  const { isSuccess } = useWaitForTransactionReceipt({ hash: buyHash });
+  const { writeContract: approveUSDC, data: approveHash, isPending: isApproving, error: approveError } = useWriteContract();
+  const { isLoading: isApproveConfirming, isSuccess: approveSuccess } = useWaitForTransactionReceipt({ hash: approveHash });
+  const { writeContract: buy, data: buyHash, isPending: isBuying, error: buyError } = useWriteContract();
+  const { isLoading: isBuyConfirming, isSuccess } = useWaitForTransactionReceipt({ hash: buyHash });
+  const isPending = isApproving || isApproveConfirming || isBuying || isBuyConfirming;
+  const error = buyError ?? approveError;
 
   const buyListing = (listingId: bigint, totalCost: bigint) =>
     approveUSDC({ address: USDC_ADDRESS, abi: ERC20_ABI, functionName: "approve", args: [MARKETPLACE_ADDRESS, totalCost] });

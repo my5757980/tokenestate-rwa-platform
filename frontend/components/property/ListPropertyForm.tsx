@@ -6,6 +6,7 @@ import { parseUnits } from "viem";
 import { TxButton } from "@/components/ui/TxButton";
 import { useListProperty } from "@/hooks/usePropertyRegistry";
 import { uploadPropertyToIPFS } from "@/lib/ipfs";
+import { txErrorMessage } from "@/lib/txError";
 import type { TxStatus } from "@/types";
 
 export function ListPropertyForm() {
@@ -101,7 +102,7 @@ export function ListPropertyForm() {
       </div>
 
       {uploadError && <p className="text-red-400 text-sm">{uploadError}</p>}
-      {error && <p className="text-red-400 text-sm">{error.message}</p>}
+      {error && <p className="text-red-400 text-sm">{txErrorMessage(error)}</p>}
       {isSuccess && (
         <p className="text-neon-green text-sm">Property listed successfully!</p>
       )}

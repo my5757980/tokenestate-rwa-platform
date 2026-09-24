@@ -2,11 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { useAccount } from "wagmi";
-import { formatUnits } from "viem";
+import { formatUnits, parseUnits } from "viem";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { TxButton } from "@/components/ui/TxButton";
 import { usePurchaseTokens, useTokenBalance, usePauseProperty } from "@/hooks/usePropertyRegistry";
 import { useRentDeposit } from "@/hooks/useRentDistributor";
+import { useKYCBadge } from "@/hooks/useKYCBadge";
+import { txErrorMessage } from "@/lib/txError";
 import type { Property, TxStatus } from "@/types";
 
 interface PropertyDetailProps {
@@ -19,14 +21,17 @@ export function PropertyDetail({ property }: PropertyDetailProps) {
   const [rentAmount, setRentAmount] = useState("");
 
   const { purchaseTokens, executePurchase, approveSuccess, isApproving, isBuying, isSuccess, error } = usePurchaseTokens();
-  const { balance } = useTokenBalance(address, BigInt(property.id));
+  const { balance, refetch: refetchBalance } = useTokenBalance(address, BigInt(property.id));
   const { pauseProperty, unpauseProperty, isPending: isPausing } = usePauseProperty();
-  const { depositRent, isPending: isDepositing, isSuccess: rentSuccess } = useRentDeposit();
+  const { depositRent, executeDeposit, approveSuccess: rentApproved, isPending: isDepositing, isSuccess: rentSuccess, error: rentError } = useRentDeposit();
+  const { isVerified } = useKYCBadge(address);
 
   const isOwner = address?.toLowerCase() === property.owner.toLowerCase();
   const available = property.totalSupply - property.tokensSold;
   const priceUSD = Number(formatUnits(property.pricePerToken, 6)).toFixed(2);
   const totalCost = (BigInt(amount || "0") * property.pricePerToken);
+  // Rent in USDC units (6 decimals); parseUnits avoids float rounding (0.29 * 1e6 is 289999.99...)
+  const rentUnits = () => parseUnits(rentAmount || "0", 6);
 
   // Auto-execute purchase after USDC approval
   useEffect(() => {
@@ -34,6 +39,18 @@ export function PropertyDetail({ property }: PropertyDetailProps) {
       executePurchase(BigInt(property.id), BigInt(amount));
     }
   }, [approveSuccess]);
+
+  // Show the new balance as soon as the purchase is mined
+  useEffect(() => {
+    if (isSuccess) refetchBalance();
+  }, [isSuccess]);
+
+  // Deposit rent once its USDC approval is mined
+  useEffect(() => {
+    if (rentApproved) {
+      executeDeposit(BigInt(property.id), rentUnits());
+    }
+  }, [rentApproved]);
 
   const buyStatus: TxStatus = isApproving || isBuying ? "pending" : isSuccess ? "success" : "idle";
 
@@ -86,14 +103,17 @@ export function PropertyDetail({ property }: PropertyDetailProps) {
             <span className="text-white font-medium">${Number(formatUnits(totalCost, 6)).toFixed(2)} USDC</span>
           </div>
 
-          {error && <p className="text-red-400 text-sm">{error.message}</p>}
+          {isConnected && isVerified === false && (
+            <p className="text-yellow-400 text-sm">Only wallets with an active KYC badge can buy tokens. Ask the platform to verify this wallet.</p>
+          )}
+          {error && <p className="text-red-400 text-sm">{txErrorMessage(error)}</p>}
           {isSuccess && <p className="text-neon-green text-sm">Purchase successful!</p>}
 
           {isConnected ? (
             <TxButton
               onClick={() => purchaseTokens(BigInt(property.id), BigInt(amount), property.pricePerToken)}
               status={buyStatus}
-              disabled={available === 0n || !property.active}
+              disabled={available === 0n || !property.active || isVerified !== true}
             >
               {isApproving ? "Approving USDC..." : isBuying ? "Purchasing..." : "Buy Tokens"}
             </TxButton>
@@ -117,9 +137,11 @@ export function PropertyDetail({ property }: PropertyDetailProps) {
                 className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-neon-green"
               />
             </div>
+            <p className="text-gray-500 text-xs">Enter the rent for the whole property. Only the share of tokens investors hold is collected; the share of unsold tokens stays with you.</p>
+            {rentError && <p className="text-red-400 text-sm">{txErrorMessage(rentError)}</p>}
             {rentSuccess && <p className="text-neon-green text-sm">Rent deposited!</p>}
             <TxButton
-              onClick={() => depositRent(BigInt(property.id), BigInt(Math.floor(parseFloat(rentAmount) * 1e6)))}
+              onClick={() => depositRent(BigInt(property.id), rentUnits())}
               status={isDepositing ? "pending" : rentSuccess ? "success" : "idle"}
               disabled={!rentAmount || parseFloat(rentAmount) <= 0}
             >

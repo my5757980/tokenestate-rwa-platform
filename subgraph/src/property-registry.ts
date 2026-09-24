@@ -28,18 +28,8 @@ export function handleTokensPurchased(event: TokensPurchased): void {
   if (!p) return;
   p.tokensSold = p.tokensSold.plus(event.params.amount);
   p.save();
-
-  const holdingId = id + "-" + event.params.buyer.toHexString();
-  let h = Holding.load(holdingId);
-  if (!h) {
-    h = new Holding(holdingId);
-    h.property = id;
-    h.holder = event.params.buyer;
-    h.balance = BigInt.fromI32(0);
-  }
-  h.balance = h.balance.plus(event.params.amount);
-  h.updatedAt = event.block.timestamp;
-  h.save();
+  // The buyer's holding is credited by handleTransferSingle: the purchase also emits TransferSingle,
+  // so adding the amount here as well counted every purchased token twice.
 }
 
 export function handlePropertyPaused(event: PropertyPaused): void {

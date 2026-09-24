@@ -5,12 +5,17 @@ import { RENT_DISTRIBUTOR_ADDRESS, RENT_DISTRIBUTOR_ABI, USDC_ADDRESS, ERC20_ABI
 
 // ─── Deposit Rent (owner) ────────────────────────────────────────────────────
 
+// Two steps, like buying: approve USDC, then deposit once the approval is mined (the caller runs
+// executeDeposit when approveSuccess turns true).
 export function useRentDeposit() {
-  const { writeContract: approveUSDC, data: approveHash } = useWriteContract();
-  const { isSuccess: approveSuccess } = useWaitForTransactionReceipt({ hash: approveHash });
+  const { writeContract: approveUSDC, data: approveHash, isPending: isApproving, error: approveError } = useWriteContract();
+  const { isLoading: isApproveConfirming, isSuccess: approveSuccess } = useWaitForTransactionReceipt({ hash: approveHash });
 
-  const { writeContract: deposit, data: depositHash, isPending, error } = useWriteContract();
-  const { isSuccess } = useWaitForTransactionReceipt({ hash: depositHash });
+  const { writeContract: deposit, data: depositHash, isPending: isDepositing, error: depositError } = useWriteContract();
+  const { isLoading: isDepositConfirming, isSuccess } = useWaitForTransactionReceipt({ hash: depositHash });
+
+  const isPending = isApproving || isApproveConfirming || isDepositing || isDepositConfirming;
+  const error = depositError ?? approveError;
 
   const depositRent = (propertyId: bigint, amount: bigint) => {
     approveUSDC({

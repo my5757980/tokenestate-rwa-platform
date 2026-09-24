@@ -4,6 +4,8 @@ import { formatUnits } from "viem";
 import { useAccount } from "wagmi";
 import { TxButton } from "@/components/ui/TxButton";
 import { useBuyListing, useCancelListing } from "@/hooks/useMarketplace";
+import { useKYCBadge } from "@/hooks/useKYCBadge";
+import { txErrorMessage } from "@/lib/txError";
 import { useEffect } from "react";
 import type { Listing } from "@/types";
 
@@ -15,6 +17,7 @@ export function ListingCard({ listing }: ListingCardProps) {
   const { address } = useAccount();
   const { buyListing, executeBuy, approveSuccess, isPending, isSuccess, error } = useBuyListing();
   const { cancelListing, isPending: isCancelling } = useCancelListing();
+  const { isVerified } = useKYCBadge(address);
 
   const isSeller = address?.toLowerCase() === listing.seller.toLowerCase();
   const totalCost = BigInt(listing.amount) * BigInt(listing.pricePerToken);
@@ -47,7 +50,10 @@ export function ListingCard({ listing }: ListingCardProps) {
         Seller: {listing.seller.slice(0, 6)}...{listing.seller.slice(-4)}
       </p>
 
-      {error && <p className="text-red-400 text-sm">{error.message}</p>}
+      {!isSeller && address && isVerified === false && (
+        <p className="text-yellow-400 text-sm">Only wallets with an active KYC badge can buy.</p>
+      )}
+      {error && <p className="text-red-400 text-sm">{txErrorMessage(error)}</p>}
       {isSuccess && <p className="text-neon-green text-sm">Purchase successful!</p>}
 
       {isSeller ? (
@@ -62,6 +68,7 @@ export function ListingCard({ listing }: ListingCardProps) {
         <TxButton
           onClick={() => buyListing(BigInt(listing.id), totalCost)}
           status={isPending ? "pending" : isSuccess ? "success" : "idle"}
+          disabled={isVerified !== true}
           className="w-full"
         >
           {isPending ? "Processing..." : `Buy for $${totalUSD}`}
