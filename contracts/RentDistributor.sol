@@ -72,27 +72,23 @@ contract RentDistributor is IRentDistributor, Ownable, ReentrancyGuard {
         }
     }
 
-    /// @notice Called by PropertyRegistry._update on every token transfer
+    /// @notice Called by PropertyRegistry._update on every token transfer, BEFORE balances change:
+    /// pays each side the rent its current balance has earned, then restarts both at the current
+    /// accumulator, so tokens that move carry no rent their new holder did not earn.
     function snapshotDebt(address from, address to, uint256 propertyId) external {
         require(msg.sender == address(registry), "RentDistributor: only registry");
 
-        // Settle pending rent for 'from' before their balance decreases
-        if (from != address(0) && from != address(registry)) {
-            uint256 pendingFrom = pendingRent(from, propertyId);
-            if (pendingFrom > 0) {
-                debtPerToken[propertyId][from] = totalRentPerToken[propertyId];
-                usdc.safeTransfer(from, pendingFrom);
-                emit RentClaimed(propertyId, from, pendingFrom);
-            } else {
-                debtPerToken[propertyId][from] = totalRentPerToken[propertyId];
-            }
-        }
+        if (from != address(0) && from != address(registry)) _settle(from, propertyId);
+        if (to != address(0) && to != address(registry)) _settle(to, propertyId);
+    }
 
-        // Initialize debt for 'to' at current accumulator (prevents claiming historical rent)
-        if (to != address(0) && to != address(registry)) {
-            if (debtPerToken[propertyId][to] == 0) {
-                debtPerToken[propertyId][to] = totalRentPerToken[propertyId];
-            }
+    /// @dev Pay out what `holder` has earned so far and restart its checkpoint at the current accumulator.
+    function _settle(address holder, uint256 propertyId) private {
+        uint256 pending = pendingRent(holder, propertyId);
+        debtPerToken[propertyId][holder] = totalRentPerToken[propertyId];
+        if (pending > 0) {
+            usdc.safeTransfer(holder, pending);
+            emit RentClaimed(propertyId, holder, pending);
         }
     }
 

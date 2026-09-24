@@ -112,14 +112,14 @@ contract PropertyRegistry is IPropertyRegistry, ERC1155, ERC1155Pausable, ERC115
         uint256[] memory ids,
         uint256[] memory values
     ) internal override(ERC1155, ERC1155Pausable) {
-        super._update(from, to, ids, values);
-
-        // Snapshot debt for rent distributor on every ownership change
+        // Settle rent BEFORE balances move, so each side is paid on the balance that earned it
         if (address(rentDistributor) != address(0)) {
             for (uint256 i = 0; i < ids.length; i++) {
                 rentDistributor.snapshotDebt(from, to, ids[i]);
             }
         }
+
+        super._update(from, to, ids, values);
     }
 
     // ─── Views ───────────────────────────────────────────────────────────────
