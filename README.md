@@ -42,6 +42,24 @@ npm test
 npm run deploy:sepolia
 ```
 
+## Live contracts (Sepolia)
+
+Deployed on 4 Oct 2026 from a fresh deployer, `0x09630cd4430a5ad1122f04A5eD5135c67f3A9e49`. The first block is 11843049.
+
+| Contract | Address |
+|---|---|
+| PropertyRegistry | [`0x0970bb32A1F21a94DF5Bb23f37f180f5EEd8f5E9`](https://sepolia.etherscan.io/address/0x0970bb32A1F21a94DF5Bb23f37f180f5EEd8f5E9) |
+| RentDistributor | [`0xfCC46865f53fb17f78ea885E43B07E2848298c97`](https://sepolia.etherscan.io/address/0xfCC46865f53fb17f78ea885E43B07E2848298c97) |
+| Marketplace | [`0x33BB456DfA41FA4b1D9a3Cfc2CA66588E260d340`](https://sepolia.etherscan.io/address/0x33BB456DfA41FA4b1D9a3Cfc2CA66588E260d340) |
+| KYCBadge | [`0x4149C0d1Dc520ce4b8EcE0ee212b64c9369F776C`](https://sepolia.etherscan.io/address/0x4149C0d1Dc520ce4b8EcE0ee212b64c9369F776C) |
+| MockUSDC | [`0xcc5Af8412f3c2951630Aeeafeb8b70E4B0BC9ac3`](https://sepolia.etherscan.io/address/0xcc5Af8412f3c2951630Aeeafeb8b70E4B0BC9ac3) |
+
+These contracts carry the KYC and rent rules below.
+
+**Retired deployment:** the earlier Sepolia contracts (PropertyRegistry `0x0f5DaC…5252` and the others) should not be used.
+- They predate those fixes.
+- Their deployer key was committed to this repo.
+
 ## Environment Variables
 
 ```env

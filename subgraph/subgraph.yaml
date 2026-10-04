@@ -6,9 +6,9 @@ dataSources:
     name: PropertyRegistry
     network: sepolia
     source:
-      address: "0x0f5DaC9088E951241257863405F3323303f55252"
+      address: "0x0970bb32A1F21a94DF5Bb23f37f180f5EEd8f5E9"
       abi: PropertyRegistry
-      startBlock: 11149780
+      startBlock: 11843049
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -38,9 +38,9 @@ dataSources:
     name: RentDistributor
     network: sepolia
     source:
-      address: "0x545cc769C6b279686537C4dE2fBBd65CEd7f9B6e"
+      address: "0xfCC46865f53fb17f78ea885E43B07E2848298c97"
       abi: RentDistributor
-      startBlock: 11149780
+      startBlock: 11843049
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -62,9 +62,9 @@ dataSources:
     name: Marketplace
     network: sepolia
     source:
-      address: "0x18F6714F5976a00E60d6606757Be84b7f302Abc1"
+      address: "0x33BB456DfA41FA4b1D9a3Cfc2CA66588E260d340"
       abi: Marketplace
-      startBlock: 11149780
+      startBlock: 11843049
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -87,9 +87,9 @@ dataSources:
     name: KYCBadge
     network: sepolia
     source:
-      address: "0x0e09046C7A0b08Fd63Ae5Ecee778f498054Dd738"
+      address: "0x4149C0d1Dc520ce4b8EcE0ee212b64c9369F776C"
       abi: KYCBadge
-      startBlock: 11149780
+      startBlock: 11843049
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
