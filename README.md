@@ -60,6 +60,19 @@ The subgraph that indexes them is hosted on Goldsky:
 `https://api.goldsky.com/api/public/project_cmuuyllx0m36n01uaa40kf6qt/subgraphs/tokenestate/1.0.0/gn`.
 To redeploy it, run `goldsky subgraph deploy tokenestate/<version> --path .` in `subgraph/` after `graph build`.
 
+**Demo data:** the live contracts hold three demo listings. They are not real offers.
+- Marina Heights, Clifton Villa and Gulberg Plaza.
+- Their images are drawn for the demo and pinned to IPFS through the site's own `/api/ipfs`.
+
+`scripts/seed-demo.ts` created them on 5 Oct 2026, and it also runs every user flow once on Sepolia, checking balances after each step:
+- KYC badges
+- a primary purchase
+- a rent deposit and claim (no double claim)
+- a marketplace sale
+- one marketplace listing left open
+
+Re-running it repeats the purchases and the rent, but not the listings.
+
 **Retired deployment:** the earlier Sepolia contracts (PropertyRegistry `0x0f5DaC…5252` and the others) should not be used.
 - They predate those fixes.
 - Their deployer key was committed to this repo.
