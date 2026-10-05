@@ -12,7 +12,7 @@ Fractional real estate ownership on Ethereum. Buy property tokens with USDC, ear
 | Frontend | Next.js 15 App Router + TypeScript |
 | Wallet | Wagmi v2 + RainbowKit v2 + Viem |
 | Storage | IPFS via Pinata |
-| Indexing | The Graph Protocol |
+| Indexing | The Graph subgraph, hosted on Goldsky |
 | Testnet | Ethereum Sepolia |
 | Deploy | Vercel (frontend) + Hardhat Ignition (contracts) |
 
@@ -56,6 +56,10 @@ Deployed on 4 Oct 2026 from a fresh deployer, `0x09630cd4430a5ad1122f04A5eD5135c
 
 These contracts carry the KYC and rent rules below.
 
+The subgraph that indexes them is hosted on Goldsky:
+`https://api.goldsky.com/api/public/project_cmuuyllx0m36n01uaa40kf6qt/subgraphs/tokenestate/1.0.0/gn`.
+To redeploy it, run `goldsky subgraph deploy tokenestate/<version> --path .` in `subgraph/` after `graph build`.
+
 **Retired deployment:** the earlier Sepolia contracts (PropertyRegistry `0x0f5DaC…5252` and the others) should not be used.
 - They predate those fixes.
 - Their deployer key was committed to this repo.
@@ -72,7 +76,7 @@ NEXT_PUBLIC_RENT_DISTRIBUTOR_ADDRESS=
 NEXT_PUBLIC_MARKETPLACE_ADDRESS=
 NEXT_PUBLIC_KYC_BADGE_ADDRESS=
 NEXT_PUBLIC_USDC_ADDRESS=
-NEXT_PUBLIC_GRAPH_URL=    # The Graph subgraph URL
+NEXT_PUBLIC_GRAPH_URL=    # subgraph GraphQL URL (Goldsky)
 NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=
 NEXT_PUBLIC_SEPOLIA_RPC_URL=  # optional: RPC the site reads through (else the rate-limited public one)
 
@@ -120,7 +124,7 @@ tokenestate/
 │   ├── components/     # UI components
 │   ├── hooks/          # Wagmi hooks
 │   └── lib/            # graph.ts, ipfs.ts, contracts.ts
-└── subgraph/           # The Graph indexer
+└── subgraph/           # The Graph subgraph (deployed to Goldsky)
 ```
 
 ## Deploy Frontend
